@@ -15,26 +15,37 @@ let uid = 0
 export function initMixin (Vue: Class<Component>) {
   Vue.prototype._init = function (options?: Object) {
     const vm: Component = this
-    // a uid
+    // 组件唯一id
     vm._uid = uid++
 
+    // 性能监控，利用的是原生API(window.performance)
     let startTag, endTag
-    /* istanbul ignore if */
+    //  开发模式，且有performance这个API
+    // 标记开始时间
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       startTag = `vue-perf-start:${vm._uid}`
       endTag = `vue-perf-end:${vm._uid}`
       mark(startTag)
     }
 
-    // a flag to avoid this being observed
+    // a flag to avoid this being observed 一个避免被观察到的标志
     vm._isVue = true
-    // merge options
+    // merge options 混合options
+    // 如果该实例是组件， 组件需要特殊处理
     if (options && options._isComponent) {
-      // optimize internal component instantiation
-      // since dynamic options merging is pretty slow, and none of the
-      // internal component options needs special treatment.
+      /**
+       * 每个子组件初始化时走这里，这里只做了一些性能优化
+       * 将组件配置对象上的一些深层次属性放到 vm.$options 选项中，以提高代码的执行效率
+       */
       initInternalComponent(vm, options)
     } else {
+      /**
+       * 初始化根组件时走这里，合并 Vue 的全局配置到根组件的局部配置，比如 Vue.component 注册的全局组件会合并到 根实例的 components 选项中
+       * 至于每个子组件的选项合并则发生在两个地方：
+       *   1、Vue.component 方法注册的全局组件在注册时做了选项合并
+       *   2、{ components: { xx } } 方式注册的局部组件在执行编译器生成的 render 函数时做了选项合并，包括根组件中的 components 配置
+       */
+      //
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},

@@ -397,7 +397,10 @@ export function mergeOptions (
   if (typeof child === 'function') {
     child = child.options
   }
-
+  /**
+   * 把props设置为统一的结构，如果传的是数组 props: ['todo', 'msg'], 会先把你首字母大写，然后转成统一的对象格式 { 'Tody': { type: null }, 'Msg': { type: null } }
+   *                       如果传的是对象 props: { msg: String, num: { type: Number } }, 会转成 { 'Msg': { type: String }, 'Num': { type: Number } }
+   */
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
